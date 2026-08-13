@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
-import '../services/product_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+
+import '../services/product_service.dart';
 import '../providers/cart_provider.dart';
+
 import 'cart_screen.dart'; 
 import 'chat_screen.dart';
 import 'conversations_screen.dart';
 import 'profile_screen.dart';
+import 'add_product_screen.dart'; 
 
 class HomeScreen extends StatefulWidget {
-  // Retrait du 'const' par sécurité pour ton compilateur Linux
   HomeScreen({super.key});
 
   @override
@@ -20,13 +23,26 @@ class _HomeScreenState extends State<HomeScreen> {
   
   List<dynamic> _produits = [];
   bool _isLoading = true; 
+  
+  // NOUVEAU : La variable _role est bien déclarée ici
+  String _role = "client";
 
   @override
   void initState() {
     super.initState();
-    _chargerProduits();
+    _chargerInfos(); // Appelle d'abord le rôle
+    _chargerProduits(); // Puis charge les produits
   }
 
+  // NOUVEAU : Fonction pour récupérer le rôle depuis SharedPreferences
+  Future<void> _chargerInfos() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _role = prefs.getString('user_role') ?? "client";
+    });
+  }
+
+  // EXISTANT : (C'est la fonction que le compilateur ne trouvait plus)
   Future<void> _chargerProduits() async {
     final produits = await ProductService.getProducts();
     setState(() {
@@ -65,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.notifications_none_rounded), // Plus de const
+            icon: Icon(Icons.notifications_none_rounded),
             onPressed: () {},
           ),
         ],
@@ -78,10 +94,36 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? ConversationsScreen() 
             : _selectedIndex == 2 
                 ? CartScreen() 
-                // LE CHANGEMENT EST ICI :
                 : const ProfileScreen(), 
       ),
       
+      // --- LE BOUTON FLOTTANT (Visible uniquement pour les admins sur l'accueil) ---
+      floatingActionButton: (_selectedIndex == 0 && _role == 'admin') 
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                // Navigation vers la page d'ajout
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddProductScreen()),
+                );
+                
+                // Si la page renvoie 'true' (produit ajouté), on rafraîchit la liste
+                if (result == true) {
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  _chargerProduits();
+                }
+              },
+              backgroundColor: colorScheme.primary,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                "Ajouter", 
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+              ),
+            )
+          : null, // S'il n'est pas admin ou pas sur l'accueil, on n'affiche rien
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
@@ -94,7 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: colorScheme.primary,
         unselectedItemColor: Colors.grey,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        // Retrait du 'const' sur la liste items pour éviter le crash
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "Accueil"),
           BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: "Messages"),
@@ -105,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- LE CATALOGUE EXTRAIT DANS UNE FONCTION ---
+  // --- LE CATALOGUE ---
   Widget _buildCatalogue(ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -188,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Icon(
-                _getIconFromString(produit["icone"]), 
+                _getIconFromString(produit["icone"] ?? 'devices_other_rounded'), 
                 size: 60,
                 color: colorScheme.primary,
               ),
@@ -200,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  produit["nom"],
+                  produit["nom"] ?? "Produit inconnu",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -210,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  produit["prix"],
+                  produit["prix"] ?? "0 FCFA",
                   style: TextStyle(
                     color: colorScheme.secondary,
                     fontWeight: FontWeight.w900,
@@ -226,11 +267,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          behavior: SnackBarBehavior.floating, // <-- AJOUT : Rend la bannière flottante
-                          margin: EdgeInsets.all(15), // <-- AJOUT : Décolle la bannière des bords
+                          behavior: SnackBarBehavior.floating, 
+                          margin: const EdgeInsets.all(15), 
                           content: Text("${produit['nom']} ajouté au panier !"),
                           backgroundColor: colorScheme.primary,
-                          duration: Duration(seconds: 2), 
+                          duration: const Duration(seconds: 2), 
                           action: SnackBarAction(
                             label: 'ANNULER',
                             textColor: Colors.black,
@@ -249,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
-                    child: Text("Ajouter", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)), // Plus de const
+                    child: const Text("Ajouter", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 )
               ],

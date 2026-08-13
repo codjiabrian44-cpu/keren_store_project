@@ -39,11 +39,35 @@ class Product(db.Model):
     date_ajout = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
+        # Détermination de l'icône selon la catégorie
+        if self.categorie in ["Portables", "UltraBook"]:
+            icone = "laptop_windows_rounded"
+        elif self.categorie in ["Desktop", "Stations de travail"]:
+            icone = "desktop_windows_rounded"
+        elif self.categorie == "Gaming":
+            icone = "sports_esports_rounded"
+        elif self.categorie == "Accessoires":
+            icone = "mouse_rounded"
+        else:
+            icone = "devices_other_rounded"
+
         return {
             'id': self.id,
             'nom': self.nom,
-            'prix': f"{self.prix} FCFA",
-            'icone': "laptop_windows_rounded" if self.categorie == "PC" else "devices_other_rounded"
+            'marque': self.marque,
+            'categorie': self.categorie,
+            'prix': self.prix,
+            'prix_affiche': f"{self.prix:,}".replace(",", " ") + " FCFA",
+            'description': self.description,
+            'image_url': self.image_url if self.image_url else None,
+            'en_stock': self.en_stock,
+            'ram_go': self.ram_go,
+            'stockage_go': self.stockage_go,
+            'type_stockage': self.type_stockage,
+            'processeur': self.processeur,
+            'autres_specs': self.autres_specs,
+            'date_ajout': self.date_ajout.isoformat() if self.date_ajout else None,
+            'icone': icone
         }
 
 # Table des Commandes
