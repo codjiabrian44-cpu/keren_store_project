@@ -70,6 +70,15 @@ def recalculer_etoiles(user_id):
         utilisateur.etoiles = nouvelles_etoiles
         db.session.commit()
 
+@app.route('/api/debug-db', methods=['GET'])
+def debug_db():
+    uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    return jsonify({
+        "type_de_base": uri.split('://')[0] if '://' in uri else 'inconnu',
+        "database_url_vue_par_render": bool(os.environ.get('DATABASE_URL')),
+        "nombre_produits": Product.query.count()
+    }), 200
+
 # --- ROUTES AUTHENTIFICATION ---
 @app.route('/api/auth/login', methods=['POST'])
 def login():
