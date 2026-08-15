@@ -76,9 +76,11 @@ class Order(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    vendeur_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    vendeur_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     produit_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    statut = db.Column(db.String(50), default='En attente') 
+    quantite = db.Column(db.Integer, default=1, nullable=False)
+    # Remplacement de 'En attente' par 'Commande passée'
+    statut = db.Column(db.String(50), default='Commande passée') 
     date_commande = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Table des Messages
@@ -91,3 +93,15 @@ class Message(db.Model):
     contenu = db.Column(db.Text, nullable=False)
     lu = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Table des Avis (Reviews)
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    note = db.Column(db.Integer, nullable=False)
+    commentaire = db.Column(db.Text, nullable=True)
+    date_avis = db.Column(db.DateTime, default=datetime.utcnow)

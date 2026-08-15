@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/order_service.dart';
 import 'chat_screen.dart';
+import 'order_tracking_screen.dart'; // NOUVEL IMPORT
 
 class ConversationsScreen extends StatefulWidget {
   ConversationsScreen({super.key});
@@ -53,7 +54,6 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       itemCount: _orders.length,
                       itemBuilder: (context, index) {
                         final order = _orders[index];
-                        // Sécurisation de l'ID selon ce que renvoie ton API
                         final orderId = order['id'] ?? order['order_id'];
                         final status = order['statut'] ?? "En cours";
 
@@ -71,9 +71,29 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text("Statut : $status", style: TextStyle(color: Colors.grey)),
-                            trailing: Icon(Icons.chevron_right, color: colorScheme.primary),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // --- NOUVEAU BOUTON SUIVI ---
+                                IconButton(
+                                  icon: Icon(Icons.local_shipping_outlined, color: colorScheme.secondary),
+                                  tooltip: "Suivi de commande",
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => OrderTrackingScreen(
+                                          orderId: orderId, 
+                                          initialStatus: status
+                                        ),
+                                      ),
+                                    ).then((_) => _chargerCommandes()); // Rafraîchir au retour
+                                  },
+                                ),
+                                Icon(Icons.chevron_right, color: colorScheme.primary),
+                              ],
+                            ),
                             onTap: () {
-                              // Quand on clique, on navigue par-dessus l'écran pour ouvrir le Chat
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
