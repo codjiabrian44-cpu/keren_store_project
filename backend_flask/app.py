@@ -18,7 +18,14 @@ app = Flask(__name__)
 # Configurations de sécurité et de base de données via variables d'environnement
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'keren_store_secret_key_a_changer')
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'cle_secrete_jwt_pour_keren_store_2026')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///keren_store.db')
+database_url = os.environ.get('DATABASE_URL')
+
+if database_url:
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///keren_store.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=30)
 
