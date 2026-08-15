@@ -9,6 +9,9 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Product, Order, Message, Review
 from datetime import timedelta
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # Chargement des variables d'environnement depuis le fichier .env (s'il existe)
 load_dotenv()
@@ -165,13 +168,15 @@ def add_product():
             if not extension_autorisee(file.filename):
                 return jsonify({"erreur": "Extension de fichier non autorisée."}), 400
                 
-            extension = file.filename.rsplit('.', 1)[1].lower()
-            nouveau_nom = f"{uuid.uuid4().hex}.{extension}"
-            chemin_sauvegarde = os.path.join(app.config['UPLOAD_FOLDER'], nouveau_nom)
-            file.save(chemin_sauvegarde)
+            # --- NOUVEAU CODE CLOUDINARY ---
+            try:
+                # Cloudinary s'occupe de générer un nom unique et d'héberger l'image
+                upload_result = cloudinary.uploader.upload(file)
+                # On récupère le lien HTTPS sécurisé
+                image_url = upload_result.get('secure_url')
+            except Exception as e:
+                return jsonify({"erreur": f"Erreur Cloudinary : {str(e)}"}), 500
             
-            image_url = f"/static/uploads/{nouveau_nom}"
-
     autres_specs = {}
     autres_specs_str = request.form.get('autres_specs')
     if autres_specs_str:
@@ -242,21 +247,12 @@ def update_product(product_id):
             if not extension_autorisee(file.filename):
                 return jsonify({"erreur": "Extension non autorisée."}), 400
                 
-            if produit.image_url:
-                ancien_nom = produit.image_url.split('/')[-1]
-                chemin_ancien = os.path.join(app.config['UPLOAD_FOLDER'], ancien_nom)
-                if os.path.exists(chemin_ancien):
-                    try:
-                        os.remove(chemin_ancien)
-                    except OSError:
-                        pass
-
-            extension = file.filename.rsplit('.', 1)[1].lower()
-            nouveau_nom = f"{uuid.uuid4().hex}.{extension}"
-            chemin_sauvegarde = os.path.join(app.config['UPLOAD_FOLDER'], nouveau_nom)
-            file.save(chemin_sauvegarde)
-            
-            produit.image_url = f"/static/uploads/{nouveau_nom}"
+            # --- NOUVEAU CODE CLOUDINARY POUR LA MISE À JOUR ---
+            try:
+                upload_result = cloudinary.uploader.upload(file)
+                produit.image_url = upload_result.get('secure_url')
+            except Exception as e:
+                return jsonify({"erreur": f"Erreur Cloudinary : {str(e)}"}), 500
 
     db.session.commit()
     return jsonify({"message": "Produit mis à jour avec succès !"}), 200
@@ -274,14 +270,7 @@ def delete_product(product_id):
     if not produit:
         return jsonify({"erreur": "Produit introuvable"}), 404
 
-    if produit.image_url:
-        nom_fichier = produit.image_url.split('/')[-1]
-        chemin_fichier = os.path.join(app.config['UPLOAD_FOLDER'], nom_fichier)
-        if os.path.exists(chemin_fichier):
-            try:
-                os.remove(chemin_fichier)
-            except OSError:
-                pass
+
 
     db.session.delete(produit)
     db.session.commit()
@@ -632,11 +621,9 @@ def send_message(order_id):
     nouveau_message = Message(order_id=order_id, expediteur_id=user_id, contenu=contenu)
     db.session.add(nouveau_message)
     
-    # Note : Assure-toi que cette ligne correspond bien à ton nouveau statut "Commande passée" 
-    # si tu l'avais modifié dans un prompt précédent, par exemple : 
-    # if current_user.role == 'admin' and commande.statut == 'Commande passée':
-    if current_user.role == 'admin' and commande.statut == 'En attente':
-        commande.statut = 'En cours de traitement'
+    
+    if current_user.role == 'admin' and commande.statut == 'Commande passée':
+        commande.statut = 'Confirmée par vendeur'
         
     db.session.commit()
     

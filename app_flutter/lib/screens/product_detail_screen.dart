@@ -45,7 +45,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     // Récupération des avis
     Map<String, dynamic>? avis;
     try {
-      final response = await http.get(Uri.parse('http://127.0.0.1:5000/api/products/${widget.productId}/reviews'));
+      final response = await http.get(Uri.parse('https://keren-store-api.onrender.com/api/products/${widget.productId}/reviews'));
       if (response.statusCode == 200) {
         avis = jsonDecode(response.body);
       }
@@ -139,7 +139,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     String? imageUrl = _produit!['image_url'];
     if (imageUrl != null && imageUrl.startsWith('/')) {
-      imageUrl = 'http://127.0.0.1:5000$imageUrl';
+      imageUrl = 'https://keren-store-api.onrender.com$imageUrl';
     }
 
     final bool enStock = _produit!['en_stock'] ?? false;

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminService {
-  static const String baseUrl = 'http://127.0.0.1:5000/api/admins';
+  static const String baseUrl = 'https://keren-store-api.onrender.com/api/admins';
 
   static Future<List<Map<String, dynamic>>> getAdmins() async {
     try {

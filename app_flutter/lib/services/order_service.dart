@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderService {
-  static const String baseUrl = 'http://127.0.0.1:5000/api/orders';
+  static const String baseUrl = 'https://keren-store-api.onrender.com/api/orders';
 
   // Fonction pour créer une commande (ajout du vendeurId nullable)
   static Future<Map<String, dynamic>> createOrder(int produitId, int quantite, int? vendeurId) async {

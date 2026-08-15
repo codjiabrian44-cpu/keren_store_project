@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   // L'application Linux et le serveur Flask sont sur la même machine
-  static const String baseUrl = 'http://127.0.0.1:5000/api/auth';
+  static const String baseUrl = 'https://keren-store-api.onrender.com/api/auth';
 
   // --- INSCRIPTION ---
   static Future<Map<String, dynamic>> register(String nom, String email, String password) async {

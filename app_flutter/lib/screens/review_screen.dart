@@ -35,7 +35,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       }
 
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:5000/api/products/${widget.productId}/reviews'),
+        Uri.parse('https://keren-store-api.onrender.com/api/products/${widget.productId}/reviews'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatService {
-  static const String baseUrl = 'http://127.0.0.1:5000/api/orders';
+  static const String baseUrl = 'https://keren-store-api.onrender.com/api/orders';
 
   // 1. Récupérer l'historique de la conversation
  static Future<List<dynamic>> getMessages(int orderId) async {

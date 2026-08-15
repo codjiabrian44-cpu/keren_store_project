@@ -43,7 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _connecterSocket() {
-    socket = IO.io('http://127.0.0.1:5000', <String, dynamic>{
+    socket = IO.io('https://keren-store-api.onrender.com', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });

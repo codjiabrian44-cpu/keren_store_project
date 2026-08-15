@@ -286,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Gestion de l'URL : on s'assure d'avoir le chemin complet vers Flask
     String? imageUrl = produit["image_url"];
     if (imageUrl != null && imageUrl.startsWith('/')) {
-      imageUrl = 'http://127.0.0.1:5000$imageUrl';
+      imageUrl = 'https://keren-store-api.onrender.com$imageUrl';
     }
 
     return GestureDetector(
